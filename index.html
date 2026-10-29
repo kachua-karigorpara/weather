@@ -59,6 +59,12 @@ a{color:inherit;text-decoration:none}
 .dots button{width:11px;height:11px;border-radius:50%;border:2px solid #fff;background:transparent;cursor:pointer;padding:0}
 .dots button.on{background:#fff}
 
+/* স্লাইডের উপরের সারি: অবস্থান ও ঘড়ি */
+.stop{position:absolute;top:12px;left:0;right:0;max-width:1200px;margin:auto;padding:0 60px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;font-size:.92rem;font-weight:500}
+.loc{background:rgba(0,0,0,.22);border-radius:999px;padding:2px 14px}
+.clock{background:rgba(0,0,0,.22);border-radius:999px;padding:2px 14px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.slide .wrap{padding-top:34px}
+
 /* Sections */
 section.blk{max-width:1200px;margin:auto;padding:48px 20px 16px}
 .blk h2{font-size:1.6rem;font-weight:700;margin-bottom:2px}
@@ -87,7 +93,9 @@ footer{margin-top:36px;background:var(--river);color:#fff;padding:22px 20px;text
   .menu{display:none;position:absolute;top:100%;left:0;right:0;background:var(--river);flex-direction:column;padding:8px 20px 14px}
   .menu.open{display:flex}
   .datebar .in{flex-direction:column;align-items:center;text-align:center}
-  .hero{height:340px}
+  .hero{height:380px}
+  .stop{padding:0 14px;flex-direction:column;align-items:center;gap:4px;font-size:.82rem}
+  .slide .wrap{padding-top:60px}
   .slide .wrap{grid-template-columns:1fr;text-align:center;gap:0;padding:0 24px}
   .slide p{margin-inline:auto}.chips{justify-content:center}
   .icon{order:-1;font-size:3.4rem}
@@ -124,7 +132,8 @@ $(function(){
 /* ================= কনফিগ (এখান থেকেই সব লেখা বদলানো যায়) ================= */
 var CONFIG = {
   place: 'কচুয়া কারিগরপাড়া',
-  lat: 23.3667, lon: 90.9167,           // আপনার এলাকার সঠিক লোকেশন দিন
+  locationPath: ['রাজশাহী', 'নাটোর', 'লালপুর', 'কচুয়া কারিগরপাড়া'],  // প্রতিটি স্লাইডে দেখায়
+  lat: 24.37, lon: 89.03,               // লালপুর, নাটোর এলাকা। আরও সঠিক করতে নিজের লোকেশন দিন
   hijriOffset: 0,                        // চাঁদ দেখার সঙ্গে মেলাতে -1 / +1
   refreshMin: 30,
   slideSeconds: 6,
@@ -227,6 +236,15 @@ function showDates(){
 showDates(); setInterval(showDates, 60000);
 
 /* ================= হিরো স্লাইডার ================= */
+function tick(){
+  var h = 0, m = '00', sec = '00';
+  $.each(new Intl.DateTimeFormat('en-GB', {hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23', timeZone:TZ}).formatToParts(new Date()), function(_, x){
+    if(x.type === 'hour') h = +x.value; if(x.type === 'minute') m = x.value; if(x.type === 'second') sec = x.value;
+  });
+  var per = h < 6 ? 'ভোর' : h < 12 ? 'সকাল' : h < 16 ? 'দুপুর' : h < 18 ? 'বিকাল' : h < 20 ? 'সন্ধ্যা' : 'রাত';
+  $('.clock').text('🕒 ' + per + ' ' + bn(h % 12 || 12) + ':' + bn(m) + ':' + bn(sec));
+}
+setInterval(tick, 1000);
 var cur = 0, timer;
 function slidesFrom(d){
   if(!d) return [{cls:'s1', icon:'⛅', title:P + ' এখন', text:T.loading}];
@@ -244,7 +262,7 @@ function slidesFrom(d){
 function renderSlides(d){
   var list = slidesFrom(d);
   $('#slides').html($.map(list, function(s){
-    return '<div class="slide ' + s.cls + '"><div class="wrap"><div><h1>' + esc(s.title) + '</h1>'
+    return '<div class="slide ' + s.cls + '"><div class="stop"><span class="loc">📍 ' + esc(CONFIG.locationPath.join(', ')) + '</span><span class="clock" aria-label="বর্তমান সময়"></span></div><div class="wrap"><div><h1>' + esc(s.title) + '</h1>'
       + (s.big ? '<div class="big">' + s.big + '<small>°সে</small></div>' : '')
       + '<p>' + esc(s.text) + '</p>'
       + (s.chips ? '<div class="chips">' + $.map(s.chips, function(c){ return '<span class="chip">' + esc(c) + '</span>'; }).join('') + '</div>' : '')
@@ -252,6 +270,7 @@ function renderSlides(d){
   }).join(''));
   $('#dots').html($.map(list, function(_, i){ return '<button aria-label="স্লাইড ' + bn(i + 1) + '"></button>'; }).join(''));
   go(Math.min(cur, list.length - 1));
+  tick();
 }
 function go(n){
   var $s = $('.slide'); cur = (n + $s.length) % $s.length;
