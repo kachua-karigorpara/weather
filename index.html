@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>আবহাওয়া</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16302b; --muted:#5b726c; --bg:#f2f6f1; --card:#ffffff; --line:#d9e4dc;
+  --river:#0f5c63; --paddy:#3f8f4e; --mango:#f2b33d; --rain:#2f6f9f;
+}
+@media (prefers-color-scheme: dark){
+  :root{--ink:#e6f0ea; --muted:#9db5ac; --bg:#0f1b19; --card:#162623; --line:#264039; --rain:#8cc3ea;}
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{font-family:'Noto Sans Bengali',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.7}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--mango);outline-offset:2px}
+
+/* Menu */
+.nav{position:sticky;top:0;z-index:20;background:var(--river);color:#fff}
+.nav .in{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:8px 20px}
+.logo{font-weight:800;font-size:1.1rem}
+.menu{display:flex;gap:6px;list-style:none;padding:0}
+.menu a{display:block;padding:6px 14px;border-radius:6px;font-weight:500}
+.menu a:hover,.menu a.on{background:rgba(255,255,255,.16)}
+.burger{display:none;background:none;border:1px solid rgba(255,255,255,.5);color:#fff;font-size:1.3rem;border-radius:6px;padding:0 10px;cursor:pointer}
+
+/* Date bar */
+.datebar{background:var(--card);border-bottom:1px solid var(--line)}
+.datebar .in{max-width:1200px;margin:auto;padding:6px 20px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 24px;font-size:.92rem}
+.datebar span{color:var(--muted)}
+.datebar b{font-weight:600}
+#err{display:none;background:#fff3cd;color:#5c4400;padding:10px 20px;text-align:center}
+
+/* Hero slider (মাঝারি উচ্চতা) */
+.hero{position:relative;height:clamp(300px,44vh,380px);overflow:hidden;color:#fff}
+.slide{position:absolute;inset:0;display:flex;align-items:center;opacity:0;visibility:hidden;transition:opacity .9s}
+.slide.on{opacity:1;visibility:visible}
+.s1{background:linear-gradient(160deg,#0f5c63 0%,#2d8a86 55%,#8fc7a1 100%)}
+.s2{background:linear-gradient(160deg,#1d3f5e 0%,#2f6f9f 60%,#7fb0d3 100%)}
+.s3{background:linear-gradient(160deg,#7a3b1e 0%,#d9822b 55%,#f2c46d 100%)}
+.slide .wrap{max-width:1200px;width:100%;margin:auto;padding:0 60px;display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:center}
+.slide h1{font-size:clamp(1.5rem,3.4vw,2.3rem);line-height:1.35;font-weight:700}
+.slide p{opacity:.93;font-size:1.05rem;margin-top:4px;max-width:48ch}
+.big{font-size:clamp(3rem,8vw,5.2rem);font-weight:700;line-height:1.1}
+.big small{font-size:.35em;font-weight:500}
+.icon{font-size:clamp(4rem,10vw,6.5rem);text-align:center;filter:drop-shadow(0 8px 20px rgba(0,0,0,.25))}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:2px 14px;font-weight:500;font-size:.95rem}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;background:rgba(0,0,0,.28);color:#fff;border:0;width:40px;height:40px;border-radius:50%;font-size:1.3rem;cursor:pointer}
+.arrow:hover{background:rgba(0,0,0,.5)}
+.prev{left:12px}.next{right:12px}
+.dots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:10px;z-index:5}
+.dots button{width:11px;height:11px;border-radius:50%;border:2px solid #fff;background:transparent;cursor:pointer;padding:0}
+.dots button.on{background:#fff}
+
+/* Sections */
+section.blk{max-width:1200px;margin:auto;padding:48px 20px 16px}
+.blk h2{font-size:1.6rem;font-weight:700;margin-bottom:2px}
+.blk .sub{color:var(--muted);margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.day{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+.day.today{border:2px solid var(--paddy)}
+.day .dn{font-weight:700}
+.day .dd{color:var(--muted);font-size:.9rem}
+.day .ic{font-size:2.6rem;margin:4px 0 0;line-height:1.4}
+.day .tx{font-size:.95rem}
+.day .tp{font-size:1.15rem;font-weight:700;margin:4px 0}
+.day .tp span{color:var(--muted);font-weight:500}
+.day .rn{font-size:.88rem;color:var(--rain)}
+.day .wd{font-size:.85rem;color:var(--muted)}
+.detail{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.box b{display:block;font-size:1.6rem}
+.box span{color:var(--muted)}
+.note{max-width:1200px;margin:30px auto 0;padding:0 20px;color:var(--muted);font-size:.9rem}
+footer{margin-top:36px;background:var(--river);color:#fff;padding:22px 20px;text-align:center}
+
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){
+  .burger{display:block}
+  .menu{display:none;position:absolute;top:100%;left:0;right:0;background:var(--river);flex-direction:column;padding:8px 20px 14px}
+  .menu.open{display:flex}
+  .datebar .in{flex-direction:column;align-items:center;text-align:center}
+  .hero{height:340px}
+  .slide .wrap{grid-template-columns:1fr;text-align:center;gap:0;padding:0 24px}
+  .slide p{margin-inline:auto}.chips{justify-content:center}
+  .icon{order:-1;font-size:3.4rem}
+  .big{font-size:3rem}
+  .arrow{display:none}
+}
+@media (prefers-reduced-motion:reduce){.slide{transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<!-- শুধু খালি কাঠামো। সব লেখা ও ডেটা জাভাস্ক্রিপ্ট দিয়ে বসে। -->
+<header class="nav"><div class="in">
+  <a class="logo" id="logo" href="#home"></a>
+  <button class="burger" aria-label="মেনু" aria-expanded="false">☰</button>
+  <ul class="menu" id="menu"></ul>
+</div></header>
+<div class="datebar"><div class="in" id="datebar"></div></div>
+<div id="err"></div>
+<div class="hero" id="home">
+  <div id="slides"></div>
+  <button class="arrow prev" aria-label="আগের স্লাইড">‹</button>
+  <button class="arrow next" aria-label="পরের স্লাইড">›</button>
+  <div class="dots" id="dots"></div>
+</div>
+<main id="app"></main>
+<p class="note" id="note"></p>
+<footer id="foot"></footer>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(function(){
+
+/* ================= কনফিগ (এখান থেকেই সব লেখা বদলানো যায়) ================= */
+var CONFIG = {
+  place: 'কচুয়া কারিগরপাড়া',
+  lat: 23.3667, lon: 90.9167,           // আপনার এলাকার সঠিক লোকেশন দিন
+  hijriOffset: 0,                        // চাঁদ দেখার সঙ্গে মেলাতে -1 / +1
+  refreshMin: 30,
+  slideSeconds: 6,
+  menu: [
+    {id:'home', label:'হোম'},
+    {id:'forecast', label:'১০ দিনের পূর্বাভাস'},
+    {id:'today', label:'আজকের বিস্তারিত'},
+    {id:'about', label:'সম্পর্কে'}
+  ],
+  text: {
+    siteTitle: function(p){ return p + ' আবহাওয়া'; },
+    loading: 'তথ্য লোড হচ্ছে…',
+    error: 'আবহাওয়ার তথ্য আনা যায়নি। ইন্টারনেট সংযোগ দেখে পাতাটি আবার লোড করুন।',
+    forecastTitle: '১০ দিনের আবহাওয়া পূর্বাভাস',
+    forecastSub: 'প্রতিদিনের সর্বোচ্চ ও সর্বনিম্ন তাপমাত্রা, বৃষ্টি ও বাতাস।',
+    todayTitle: 'আজকের বিস্তারিত',
+    todaySub: 'এই মুহূর্তের পরিমাপ।',
+    aboutTitle: 'সম্পর্কে',
+    about: function(p, min){ return 'এই ওয়েবসাইটে ' + p + ' এলাকার আবহাওয়ার পূর্বাভাস বাংলায় দেখানো হয়। তথ্য প্রতি ' + bn(min) + ' মিনিটে নতুন করে আনা হয়।'; },
+    source: 'তথ্যসূত্র: Open-Meteo আবহাওয়া এপিআই। পূর্বাভাস আনুমানিক, জরুরি সিদ্ধান্তে বাংলাদেশ আবহাওয়া অধিদপ্তরের বার্তা দেখুন।',
+    footer: function(p, y){ return '© ' + bn(y) + ' ' + p + ' আবহাওয়া'; }
+  }
+};
+
+var TZ = 'Asia/Dhaka';
+var API = 'https://api.open-meteo.com/v1/forecast'
+  + '?latitude=' + CONFIG.lat + '&longitude=' + CONFIG.lon
+  + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m'
+  + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset'
+  + '&timezone=Asia%2FDhaka&forecast_days=10';
+
+/* ----- সহায়ক ----- */
+function bn(n){ return String(n).replace(/\d/g, function(d){ return '০১২৩৪৫৬৭৮৯'[d]; }); }
+function r(n){ return Math.round(n); }
+var WC = {
+  0:['পরিষ্কার আকাশ','☀️'],1:['প্রায় পরিষ্কার','🌤️'],2:['আংশিক মেঘলা','⛅'],3:['মেঘলা আকাশ','☁️'],
+  45:['কুয়াশা','🌫️'],48:['ঘন কুয়াশা','🌫️'],
+  51:['হালকা গুঁড়ি বৃষ্টি','🌦️'],53:['গুঁড়ি বৃষ্টি','🌦️'],55:['ঘন গুঁড়ি বৃষ্টি','🌦️'],
+  61:['হালকা বৃষ্টি','🌧️'],63:['মাঝারি বৃষ্টি','🌧️'],65:['ভারী বৃষ্টি','🌧️'],
+  80:['হালকা বৃষ্টির ঝাপটা','🌦️'],81:['বৃষ্টির ঝাপটা','🌧️'],82:['প্রবল বৃষ্টি','⛈️'],
+  95:['বজ্রসহ বৃষ্টি','⛈️'],96:['শিলাবৃষ্টিসহ ঝড়','⛈️'],99:['প্রবল ঝড়','⛈️']
+};
+function wc(c){ return WC[c] || ['অজানা','🌡️']; }
+function timeBn(iso){
+  var t = iso.split('T')[1].split(':'), h = +t[0];
+  var p = h < 6 ? 'ভোর' : h < 12 ? 'সকাল' : h < 16 ? 'দুপুর' : h < 18 ? 'বিকাল' : h < 20 ? 'সন্ধ্যা' : 'রাত';
+  return p + ' ' + bn(h % 12 || 12) + ':' + bn(t[1]);
+}
+function dayName(iso, i){
+  if(i === 0) return 'আজ';
+  if(i === 1) return 'আগামীকাল';
+  return new Date(iso + 'T12:00:00').toLocaleDateString('bn-BD', {weekday:'long'});
+}
+function dateBn(iso){ return new Date(iso + 'T12:00:00').toLocaleDateString('bn-BD', {day:'numeric', month:'long'}); }
+function esc(s){ return $('<div>').text(s).html(); }
+
+/* ================= কাঠামো তৈরি (JS) ================= */
+var P = CONFIG.place, T = CONFIG.text;
+document.title = T.siteTitle(P);
+$('#logo').text(T.siteTitle(P));
+$('#menu').html($.map(CONFIG.menu, function(m, i){
+  return '<li><a href="#' + m.id + '"' + (i === 0 ? ' class="on"' : '') + '>' + esc(m.label) + '</a></li>';
+}).join(''));
+$('#err').text(T.error);
+$('#app').html(
+  '<section class="blk" id="forecast"><h2>' + T.forecastTitle + '</h2><p class="sub">' + T.forecastSub + ' <span id="upd"></span></p><div class="grid" id="grid"></div></section>'
+ +'<section class="blk" id="today"><h2>' + T.todayTitle + '</h2><p class="sub">' + T.todaySub + '</p><div class="detail" id="detail"></div></section>'
+ +'<section class="blk" id="about"><h2>' + T.aboutTitle + '</h2><p class="sub">' + T.about(P, CONFIG.refreshMin) + '</p></section>'
+);
+$('#note').text(T.source);
+$('#foot').text(T.footer(P, new Date().getFullYear()));
+
+/* ================= তারিখ: বাংলা, আরবি, ইংরেজি ================= */
+var BN_MONTHS = ['বৈশাখ','জ্যৈষ্ঠ','আষাঢ়','শ্রাবণ','ভাদ্র','আশ্বিন','কার্তিক','অগ্রহায়ণ','পৌষ','মাঘ','ফাল্গুন','চৈত্র'];
+var AR_MONTHS = ['মুহাররম','সফর','রবিউল আউয়াল','রবিউস সানি','জমাদিউল আউয়াল','জমাদিউস সানি','রজব','শাবান','রমজান','শাওয়াল','জিলকদ','জিলহজ'];
+function isLeap(y){ return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+function banglaDate(y, m, d){
+  var start = Date.UTC(y, 3, 14), today = Date.UTC(y, m - 1, d), by = y - 593;
+  if(today < start){ start = Date.UTC(y - 1, 3, 14); by = y - 594; }
+  var sy = new Date(start).getUTCFullYear();
+  var lens = [31,31,31,31,31,30,30,30,30,30, isLeap(sy + 1) ? 30 : 29, 30];
+  var left = Math.round((today - start) / 86400000), i = 0;
+  while(left >= lens[i]){ left -= lens[i]; i++; }
+  return bn(left + 1) + ' ' + BN_MONTHS[i] + ' ' + bn(by) + ' বঙ্গাব্দ';
+}
+function showDates(){
+  var p = new Date().toLocaleDateString('en-CA', {timeZone:TZ}).split('-');
+  var y = +p[0], m = +p[1], d = +p[2];
+  var noon = new Date(Date.UTC(y, m - 1, d, 6));
+  var wd = noon.toLocaleDateString('bn-BD', {weekday:'long', timeZone:TZ});
+  var items = [['বাংলা', wd + ', ' + banglaDate(y, m, d)]];
+  try{
+    var hp = {}, hij = new Date(noon.getTime() + CONFIG.hijriOffset * 86400000);
+    $.each(new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {day:'numeric', month:'numeric', year:'numeric', timeZone:TZ}).formatToParts(hij), function(_, x){ hp[x.type] = x.value; });
+    items.push(['আরবি', wd + ', ' + bn(hp.day) + ' ' + AR_MONTHS[+hp.month - 1] + ' ' + bn(parseInt(hp.relatedYear || hp.year, 10)) + ' হিজরি']);
+  }catch(e){}
+  items.push(['ইংরেজি', noon.toLocaleDateString('bn-BD', {weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:TZ}) + ' খ্রিষ্টাব্দ']);
+  $('#datebar').html($.map(items, function(x){ return '<div><span>' + x[0] + ':</span> <b>' + esc(x[1]) + '</b></div>'; }).join(''));
+}
+showDates(); setInterval(showDates, 60000);
+
+/* ================= হিরো স্লাইডার ================= */
+var cur = 0, timer;
+function slidesFrom(d){
+  if(!d) return [{cls:'s1', icon:'⛅', title:P + ' এখন', text:T.loading}];
+  var c = d.current, dl = d.daily, w = wc(c.weather_code), prob = dl.precipitation_probability_max[0];
+  return [
+    {cls:'s1', icon:w[1], title:P + 'য় এখন', big:bn(r(c.temperature_2m)), text:w[0],
+     chips:['অনুভূত ' + bn(r(c.apparent_temperature)) + '°', 'আর্দ্রতা ' + bn(c.relative_humidity_2m) + '%']},
+    {cls:'s2', icon:'🌧️', title:'আজ বৃষ্টি ও বাতাস',
+     text: prob >= 60 ? 'আজ বৃষ্টির সম্ভাবনা বেশি, ছাতা সঙ্গে রাখুন।' : prob >= 30 ? 'আজ কিছু সময় বৃষ্টি হতে পারে।' : 'আজ বৃষ্টির সম্ভাবনা কম।',
+     chips:['বৃষ্টির সম্ভাবনা ' + bn(prob) + '%', 'বৃষ্টি ' + bn(dl.precipitation_sum[0].toFixed(1)) + ' মিমি', 'বাতাস ' + bn(r(dl.wind_speed_10m_max[0])) + ' কিমি/ঘণ্টা']},
+    {cls:'s3', icon:'🌅', title:'সূর্যোদয় ও সূর্যাস্ত', text:'আজ সকালে ও সন্ধ্যায় আকাশের হিসাব।',
+     chips:['সূর্যোদয় ' + timeBn(dl.sunrise[0]), 'সূর্যাস্ত ' + timeBn(dl.sunset[0])]}
+  ];
+}
+function renderSlides(d){
+  var list = slidesFrom(d);
+  $('#slides').html($.map(list, function(s){
+    return '<div class="slide ' + s.cls + '"><div class="wrap"><div><h1>' + esc(s.title) + '</h1>'
+      + (s.big ? '<div class="big">' + s.big + '<small>°সে</small></div>' : '')
+      + '<p>' + esc(s.text) + '</p>'
+      + (s.chips ? '<div class="chips">' + $.map(s.chips, function(c){ return '<span class="chip">' + esc(c) + '</span>'; }).join('') + '</div>' : '')
+      + '</div><div class="icon">' + s.icon + '</div></div></div>';
+  }).join(''));
+  $('#dots').html($.map(list, function(_, i){ return '<button aria-label="স্লাইড ' + bn(i + 1) + '"></button>'; }).join(''));
+  go(Math.min(cur, list.length - 1));
+}
+function go(n){
+  var $s = $('.slide'); cur = (n + $s.length) % $s.length;
+  $s.removeClass('on').eq(cur).addClass('on');
+  $('#dots button').removeClass('on').eq(cur).addClass('on');
+}
+function auto(){ clearInterval(timer); timer = setInterval(function(){ go(cur + 1); }, CONFIG.slideSeconds * 1000); }
+$('.next').on('click', function(){ go(cur + 1); auto(); });
+$('.prev').on('click', function(){ go(cur - 1); auto(); });
+$('#dots').on('click', 'button', function(){ go($(this).index()); auto(); });
+$('.hero').on('mouseenter', function(){ clearInterval(timer); }).on('mouseleave', auto);
+renderSlides(null); auto();
+
+/* ================= মেনু ================= */
+$('.burger').on('click', function(){ $(this).attr('aria-expanded', $('.menu').toggleClass('open').hasClass('open')); });
+$('#menu').on('click', 'a', function(){ $('#menu a').removeClass('on'); $(this).addClass('on'); $('.menu').removeClass('open'); });
+
+/* ================= ডেটা আনা ও দেখানো ================= */
+var loadedDate = null;
+function load(){ $.getJSON(API).done(render).fail(function(){ $('#err').show(); }); }
+
+function render(d){
+  $('#err').hide();
+  var c = d.current, dl = d.daily;
+  loadedDate = c.time.slice(0, 10);
+  $('#upd').text('সর্বশেষ হালনাগাদ: ' + timeBn(c.time) + '।');
+  renderSlides(d);
+
+  var boxes = [
+    [bn(r(c.temperature_2m)) + '°সে', 'তাপমাত্রা'],
+    [bn(r(c.apparent_temperature)) + '°সে', 'অনুভূত তাপমাত্রা'],
+    [bn(c.relative_humidity_2m) + '%', 'আর্দ্রতা'],
+    [bn(r(c.wind_speed_10m)) + ' কিমি/ঘণ্টা', 'বাতাসের গতি'],
+    [bn(c.precipitation.toFixed(1)) + ' মিমি', 'বর্তমান বৃষ্টি']
+  ];
+  $('#detail').html($.map(boxes, function(b){ return '<div class="box"><b>' + b[0] + '</b><span>' + b[1] + '</span></div>'; }).join(''));
+
+  $('#grid').html($.map(dl.time, function(date, i){
+    var x = wc(dl.weather_code[i]);
+    return '<div class="day' + (i === 0 ? ' today' : '') + '">'
+      + '<div class="dn">' + dayName(date, i) + '</div><div class="dd">' + dateBn(date) + '</div>'
+      + '<div class="ic">' + x[1] + '</div><div class="tx">' + x[0] + '</div>'
+      + '<div class="tp">' + bn(r(dl.temperature_2m_max[i])) + '° <span>/ ' + bn(r(dl.temperature_2m_min[i])) + '°</span></div>'
+      + '<div class="rn">💧 ' + bn(dl.precipitation_probability_max[i]) + '% · ' + bn(dl.precipitation_sum[i].toFixed(1)) + ' মিমি</div>'
+      + '<div class="wd">🍃 ' + bn(r(dl.wind_speed_10m_max[i])) + ' কিমি/ঘণ্টা</div></div>';
+  }).join(''));
+}
+
+load();
+setInterval(load, CONFIG.refreshMin * 60000);
+setInterval(function(){
+  var now = new Date().toLocaleDateString('en-CA', {timeZone:TZ});
+  if(loadedDate && now !== loadedDate) load();   // নতুন দিনে গ্রিড এগিয়ে যায়
+}, 60000);
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) load(); });
+
+});
+</script>
+</body>
+</html>
